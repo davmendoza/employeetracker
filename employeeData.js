@@ -3,85 +3,193 @@ var inquirer = require("inquirer");
 
 var connection = mysql.createConnection({
     host: "localhost",
-    
+
     port: 8889,
-   
+
     user: "root",
-    
+
     password: "root",
     database: "employee_db"
-  });
+});
 
-  connection.connect(function(err) {
+connection.connect(function (err) {
     if (err) throw err;
-    
-    start();
-  });
 
-  function start() {
+    mainMenu();
+});
+
+function mainMenu() {
     inquirer
-      .prompt({
-        name: "initial",
-        type: "list",
-        message: "What would you like to do?",
-        choices: ["View All Employees", "View All Employees By Department", "View All By Manager", 
-        "Add Emplyee", "Remove Empolyee", "Update Employee Role", "Update Employee Manager", "Add Role", "Remove Role"]
-      })
-      .then(function(answer) {
-        // based on their answer, either call the bid or the post functions
-        if (answer.postOrBid === "POST") {
-          postAuction();
-        }
-        else if(answer.postOrBid === "BID") {
-          bidAuction();
-        } else{
-          connection.end();
-        }
-      });
-  }
+        .prompt({
+            name: "selection",
+            type: "list",
+            message: "What would you like to do?",
+            choices: [
+                'Add an employee',
+                'Add a role',
+                'Add a department',
+                'View all employees',
+                'View all roles',
+                'View all departments',
+                'Update an employee role',
+                'Quit'
+            ]
+        })
+        .then(function (answer) {
+            switch (answer.selection) {
+                case 'Add an employee':
+                    addEmployee();
+                    break;
 
-//   function postAuction() {
-//     // prompt for info about the item being put up for auction
-//     inquirer
-//       .prompt([
-//         {
-//           name: "item",
-//           type: "input",
-//           message: "What is the item you would like to submit?"
-//         },
-//         {
-//           name: "category",
-//           type: "input",
-//           message: "What category would you like to place your auction in?"
-//         },
-//         {
-//           name: "startingBid",
-//           type: "input",
-//           message: "What would you like your starting bid to be?",
-//           validate: function(value) {
-//             if (isNaN(value) === false) {
-//               return true;
-//             }
-//             return false;
-//           }
-//         }
-//       ])
-//       .then(function(answer) {
-//         // when finished prompting, insert a new item into the db with that info
-//         connection.query(
-//           "INSERT INTO auctions SET ?",
-//           // INSERT INTO auctions SET (item_name, category, starting_bid, highest_bid) VALUES ()
-//           {
-//             item_name: answer.item,
-//             category: answer.category,
-//             starting_bid: answer.startingBid || 0,
-//             highest_bid: answer.startingBid || 0
-//           },
-//           function(err) {
-//             if (err) throw err;
-//             console.log("Your auction was created successfully!");
-//             // re-prompt the user for if they want to bid or post
-//             start();
-//           }
-//         );
-//       });
+                case 'Add a role':
+                    addRole();
+                    break;
+
+                case 'Add a department':
+                    addDepartment();
+                    break;
+
+                case "View all employees":
+                    viewAllEmployees();
+                    break;
+
+                case "View all roles":
+                    viewAllRoles();
+                    break;
+
+                case "View all departments":
+                    viewAllDepartments();
+                    break;
+
+                case 'Update an employee role':
+                    updateEmployee();
+                    break;
+
+                default:
+                    connection.end();
+            }
+
+        });
+}
+
+function addEmployee() {
+    inquirer
+        .prompt([
+            {
+                name: "firstName",
+                type: "input",
+                message: "What is the first name of the employee?"
+            },
+            {
+                name: "lastName",
+                type: "input",
+                message: "What is the last name of the employee?"
+            },
+            {
+                name: "roleId",
+                type: "input",
+                message: "What is the role id of the employee?",
+
+            },
+            {
+                name: "managerId",
+                type: "input",
+                message: "What is the manager id of the employee?",
+            }
+        ])
+        .then(function (answer) {
+            connection.query(
+                "INSERT INTO employee SET ?",
+
+                {
+                    first_name: answer.firstName,
+                    last_name: answer.lastName,
+                    role_id: parseInt(answer.roleId),
+                    manager_id: parseInt(answer.managerId)
+                },
+                function (err) {
+                    if (err) throw err;
+                    viewAllEmployees();
+
+
+                }
+            );
+        });
+
+}
+
+function addRole() { }
+
+function addDepartment() { }
+
+function viewAllEmployees() {
+    connection.query(
+        `SELECT * FROM employee`,
+        function (err, data) {
+            if (err) throw err;
+            console.table(data);
+            mainMenu();
+        })
+};
+
+function viewAllDepartments() { }
+
+function viewAllRoles() { }
+
+function updateEmployee() {
+
+    inquirer
+        .prompt([
+            {
+                name: "firstName",
+                type: "input",
+                message: "What is the first name of the employee you would like to update?"
+            },
+            {
+                name: "lastName",
+                type: "input",
+                message: "What is the last name of the employee you would like to update?"
+            },
+            {
+                name: "roleId",
+                type: "input",
+                message: "What is the employee's new role?",
+
+            },
+            {
+                name: "managerId",
+                type: "input",
+                message: "Does the employee have a new manager?",
+            }
+        ])
+        .then(function (answer) {
+            connection.query(
+                "UPDATE employee SET role_id = ? WHERE first_name = ? AND last_name = ?",
+                {
+                    first_name: answer.firstName,
+                    last_name: answer.lastName,
+                    role_id: parseInt(answer.roleId),
+                    manager_id: parseInt(answer.managerId)
+                },
+                function (err) {
+                    if (err) throw err;
+                    viewAllEmployees();
+
+
+                }
+            );
+        });
+
+
+}
+
+function viewAllEmployees() {
+    connection.query(
+        `SELECT * FROM employee`,
+        function (err, data) {
+            if (err) throw err;
+            console.table(data);
+            mainMenu();
+        })
+};
+
