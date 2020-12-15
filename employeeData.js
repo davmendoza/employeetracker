@@ -118,9 +118,70 @@ function addEmployee() {
 
 }
 
-function addRole() { }
+function addRole() { 
+    inquirer
+        .prompt([
+            {
+                name: "title",
+                type: "input",
+                message: "What is the title of the employee?"
+            },
+            {
+                name: "salary",
+                type: "input",
+                message: "What is the salary of the role?",
 
-function addDepartment() { }
+            },
+            {
+                name: "department",
+                type: "input",
+                message: "What is department does the role belong to?",
+            }
+        ])
+        .then(function (answer) {
+            connection.query(
+                "INSERT INTO role SET ?",
+
+                {
+                    title: answer.title,
+                    salary: answer.salary,
+                    department:answer.department
+                },
+                function (err) {
+                    if (err) throw err;
+                    viewAllEmployees();
+
+
+                }
+            );
+        });
+}
+
+function addDepartment() { 
+    inquirer
+        .prompt([
+            {
+                name: "name",
+                type: "input",
+                message: "What is the name of the department you are adding?"
+            }
+        ])
+        .then(function (answer) {
+            connection.query(
+                "INSERT INTO department SET ?",
+
+                {
+                    name: answer.name
+                },
+                function (err) {
+                    if (err) throw err;
+                    viewAllEmployees();
+
+
+                }
+            );
+        });
+}
 
 function viewAllEmployees() {
     connection.query(
@@ -132,9 +193,27 @@ function viewAllEmployees() {
         })
 };
 
-function viewAllDepartments() { }
 
-function viewAllRoles() { }
+
+function viewAllDepartments() { 
+    connection.query(
+        `SELECT * FROM department`,
+        function (err, data) {
+            if (err) throw err;
+            console.table(data);
+            mainMenu();
+        })
+}
+
+function viewAllRoles() {
+    connection.query(
+        `SELECT * FROM role`,
+        function (err, data) {
+            if (err) throw err;
+            console.table(data);
+            mainMenu();
+        })
+ }
 
 function updateEmployee() {
 
@@ -183,13 +262,5 @@ function updateEmployee() {
 
 }
 
-function viewAllEmployees() {
-    connection.query(
-        `SELECT * FROM employee`,
-        function (err, data) {
-            if (err) throw err;
-            console.table(data);
-            mainMenu();
-        })
-};
+
 
